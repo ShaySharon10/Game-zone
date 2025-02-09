@@ -1,0 +1,192 @@
+﻿<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>משחק תרגילי מתמטיקה</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap');
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: linear-gradient(45deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 900px;
+            width: 95%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+            .welcome-screen h1 {
+                font-size: 36px;
+                color: #ffd93d;
+                margin-bottom: 30px;
+            }
+
+        .start-button {
+            padding: 15px 40px;
+            font-size: 24px;
+            background: #4cd137;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Rubik', sans-serif;
+        }
+
+            .start-button:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 4px 15px rgba(76, 209, 55, 0.3);
+            }
+
+        .question-container {
+            margin-bottom: 20px;
+        }
+
+        .question {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .answer-input {
+            padding: 10px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            text-align: center;
+            width: 80px;
+            margin-bottom: 10px;
+        }
+
+        .submit-button {
+            padding: 10px 30px;
+            font-size: 18px;
+            background: #ffd93d;
+            color: #203a43;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .submit-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 10px rgba(255, 217, 61, 0.3);
+            }
+
+        .completion-message {
+            font-size: 24px;
+            color: #4cd137;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="welcome-screen" id="welcomeScreen">
+            <h1>משחק תרגילי מתמטיקה</h1>
+            <p>✨ ענו על התרגילים בצורה הטובה ביותר</p>
+            <p>📊 בסיום המשחק תראו את הציון שלכם</p>
+            <button class="start-button" onclick="startGame()">התחל משחק</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [];
+        const maxQuestions = 10;
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        function generateQuestion() {
+            const operations = ['+', '*', '/']; // רק חיבור, כפל וחילוק
+            const operation = operations[Math.floor(Math.random() * operations.length)];
+            let num1 = Math.floor(Math.random() * 50) + 1; // מספרים בין 1 ל-50
+            let num2 = Math.floor(Math.random() * 50) + 1; // מספרים בין 1 ל-50
+
+            if (operation === '/') {
+                num1 = num1 * num2; // לוודא שהתוצאה של החילוק היא מספר שלם
+            }
+
+            const question = {
+                text: `${num1} ${operation} ${num2}`,
+                answer: eval(`${num1} ${operation} ${num2}`)
+            };
+            return question;
+        }
+
+        function startGame() {
+            questions.length = 0; // Clear any existing questions
+            for (let i = 0; i < maxQuestions; i++) {
+                questions.push(generateQuestion());
+            }
+            currentQuestionIndex = 0;
+            score = 0;
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const gameContainer = document.getElementById('gameContainer');
+            const question = questions[currentQuestionIndex];
+
+            gameContainer.innerHTML = `
+                <div class="question-container">
+                    <h1>שאלה ${currentQuestionIndex + 1} מתוך ${maxQuestions}</h1>
+                    <div class="question">${question.text}</div>
+                    <input type="number" class="answer-input" id="answerInput" placeholder="תשובה">
+                    <button class="submit-button" onclick="submitAnswer()">שלח תשובה</button>
+                </div>
+            `;
+        }
+
+        function submitAnswer() {
+            const answerInput = document.getElementById('answerInput');
+            const userAnswer = parseFloat(answerInput.value);
+
+            if (!isNaN(userAnswer)) {
+                const correctAnswer = questions[currentQuestionIndex].answer;
+                if (Math.abs(userAnswer - correctAnswer) < 0.01) { // Handles floating-point precision
+                    score++;
+                }
+                currentQuestionIndex++;
+                if (currentQuestionIndex < maxQuestions) {
+                    showQuestion();
+                } else {
+                    endGame();
+                }
+            } else {
+                alert('אנא הזן תשובה מספרית');
+            }
+        }
+
+        function endGame() {
+            const gameContainer = document.getElementById('gameContainer');
+            gameContainer.innerHTML = `
+                <div class="completion-message">
+                    🎉 סיימתם את המשחק! 🎉<br>
+                    הציון שלכם הוא: ${score} מתוך ${maxQuestions}
+                </div>
+                <button class="start-button" onclick="startGame()">נסה שוב</button>
+            `;
+        }
+    </script>
+</body>
+</html>

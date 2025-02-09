@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>משחק זיכרון</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap');
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: linear-gradient(45deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 900px;
+            width: 95%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+            .welcome-screen h1 {
+                font-size: 36px;
+                color: #ffd93d;
+                margin-bottom: 30px;
+            }
+            .welcome-screen p {
+                font-size: 20px;
+                color: #fff;
+                margin-bottom: 40px;
+            }
+        .category-btn, .start-btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            background: #4cd137;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-family: 'Rubik', sans-serif;
+        }
+
+            .category-btn:hover, .start-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 4px 15px rgba(76, 209, 55, 0.3);
+            }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .card {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+            .card:hover {
+                transform: scale(1.1);
+            }
+
+            .card.flipped {
+                background: #ffd93d;
+                color: #203a43;
+            }
+
+            .card.matched {
+                background: #4cd137;
+            }
+
+        #result {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #ffd93d;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="welcome-screen" id="welcomeScreen">
+            <h1>משחק זיכרון</h1>
+            <p>✨ בחרו קטגוריה ותתחילו לזכור!</p>
+            <button class="start-btn" onclick="startGame()">התחל משחק</button>
+        </div>
+
+        <div id="categorySelection" style="display: none;">
+            <h2>בחר קטגוריה</h2>
+            <button class="category-btn" onclick="startGame('אוכל')">אוכל</button>
+            <button class="category-btn" onclick="startGame('ספורט')">ספורט</button>
+            <button class="category-btn" onclick="startGame('בגדים')">בגדים</button>
+            <button class="category-btn" onclick="startGame('דגלים')">דגלים</button>
+            <button class="category-btn" onclick="startGame('חיות')">חיות</button>
+            <button class="category-btn" onclick="startGame('פירות')">פירות</button>
+            <button class="category-btn" onclick="startGame('רכבים')">רכבים</button>
+            <button class="category-btn" onclick="startGame('סרטים')">סרטים</button>
+            <button class="category-btn" onclick="startGame('מוזיקה')">מוזיקה</button>
+        </div>
+
+        <div id="gameGrid" class="game-grid" style="display: none;"></div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const categories = {
+            אוכל: ['🍕', '🍣', '🍔', '🍟', '🥪', '🍩', '🍦', '🍉', '🍇', '🍒', '🍍', '🍌', '🥑', '🍊', '🍓', '🍎', '🍪', '🍫', '🍪', '🍰'],
+            ספורט: ['⚽', '🏀', '🎾', '🏊‍♂️', '🚴‍♂️', '🤾‍♀️', '🏸', '🏒', '🏓', '🏑', '🏌️‍♂️', '🤸‍♂️', '🏹', '🏄‍♀️', '🧗‍♂️', '🛶', '🏄‍♂️', '🏋️‍♀️', '🏌️‍♀️'],
+            בגדים: ['👚', '👖', '👗', '👟', '👕', '🧥', '👠', '👢', '👒', '🎩', '🧢', '👡', '🧣', '🧤', '🧢', '👞', '🧳', '👝', '👛', '💍'],
+            דגלים: ['🇮🇱', '🇺🇸', '🇯🇵', '🇬🇧', '🇫🇷', '🇮🇹', '🇩🇪', '🇪🇸', '🇲🇽', '🇨🇦', '🇦🇷', '🇪🇬', '🇷🇺', '🇮🇳', '🇿🇦', '🇨🇳', '🇮🇲', '🇧🇷', '🇯🇴', '🇰🇪'],
+            חיות: ['🐶', '🐱', '🐯', '🐵', '🐘', '🦁', '🐯', '🐨', '🐼', '🦊', '🐰', '🦓', '🦒', '🦄', '🦔', '🐸', '🐴', '🐗', '🐞', '🐌'],
+            פירות: ['🍎', '🍌', '🍍', '🍓', '🍑', '🍉', '🍇', '🍊', '🍒', '🍓', '🍊', '🍎', '🍓', '🍍', '🍌', '🍇', '🍏', '🍈', '🍉', '🍑'],
+            רכבים: ['🚗', '🚙', '🚕', '🚓', '🚑', '🚐', '🚚', '🚜', '🚛', '🛻', '🚍', '🚎', '🚘', '🚌', '🚖', '🚙', '🚘', '🚔', '🚍', '🚕'],
+            סרטים: ['🎞️', '🎬', '🎥', '🍿', '🎞️', '🎬', '🎥', '🍿', '🎞️', '🎬', '🎥', '🍿', '🎞️', '🎬', '🎥', '🍿'],
+            מוזיקה: ['🎵', '🎶', '🎤', '🎧', '🎼', '🎻', '🎺', '🥁', '🎷', '🎸', '🎹', '🎤', '🎶', '🎶', '🎧', '🎻', '🎤', '🎧', '🎶', '🎼']
+        };
+
+        let currentCategory, flippedCards = [], matchedCards = [];
+
+        function startGame(category) {
+            if (!category) {
+                document.getElementById('welcomeScreen').style.display = 'none';
+                document.getElementById('categorySelection').style.display = 'block';
+            } else {
+                document.getElementById('categorySelection').style.display = 'none';
+                document.getElementById('gameGrid').style.display = 'grid';
+                currentCategory = [...categories[category], ...categories[category]].sort(() => 0.5 - Math.random());
+                generateCards();
+            }
+        }
+
+        function generateCards() {
+            const gameGrid = document.getElementById('gameGrid');
+            gameGrid.innerHTML = '';
+            currentCategory.forEach((value, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.value = value;
+                card.addEventListener('click', flipCard);
+                gameGrid.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (flippedCards.length === 2 || this.classList.contains('flipped') || matchedCards.includes(this)) return;
+
+            this.classList.add('flipped');
+            this.textContent = this.dataset.value;
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) setTimeout(checkMatch, 800);
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            if (card1.dataset.value === card2.dataset.value) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedCards.push(card1, card2);
+                if (matchedCards.length === currentCategory.length) {
+                    document.getElementById('result').textContent = '🎉 ניצחתם! 🎉';
+                }
+            } else {
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                card1.textContent = '';
+                card2.textContent = '';
+            }
+            flippedCards = [];
+        }
+    </script>
+</body>
+</html>

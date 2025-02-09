@@ -1,0 +1,831 @@
+﻿<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>חידות הגיון</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap');
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: linear-gradient(45deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 900px;
+            width: 95%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .lives {
+            font-size: 28px;
+            color: #ff6b6b;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        .timer {
+            font-size: 24px;
+            color: #ffd93d;
+            font-weight: bold;
+            animation: timerPulse 1s infinite;
+        }
+
+        .timer.warning {
+            color: #ff6b6b;
+            animation: warningPulse 0.5s infinite;
+        }
+
+        @keyframes warningPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes timerPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .score {
+            font-size: 24px;
+            color: #4cd137;
+            font-weight: 500;
+        }
+
+        .level {
+            font-size: 24px;
+            color: #ffd93d;
+            font-weight: 500;
+        }
+
+        .riddle {
+            font-size: 24px;
+            margin: 25px 0;
+            text-align: center;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            line-height: 1.6;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .option {
+            padding: 20px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Rubik', sans-serif;
+        }
+
+        .option:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .option:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 12px;
+            min-height: 60px;
+        }
+
+        .correct-message {
+            color: #4cd137;
+            background: rgba(76, 209, 55, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #4cd137;
+        }
+
+        .wrong-message {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #ff6b6b;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .welcome-screen h1 {
+            font-size: 36px;
+            color: #ffd93d;
+            margin-bottom: 30px;
+        }
+
+        .welcome-screen p {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .start-button {
+            padding: 15px 40px;
+            font-size: 24px;
+            background: #4cd137;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Rubik', sans-serif;
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(76, 209, 55, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="welcome-screen" id="welcomeScreen">
+            <h1>ברוכים הבאים למשחק החידות!</h1>
+            <p>✨ בכל שאלה יש לכם 30 שניות לענות</p>
+            <p>❤️ יש לכם 10 חיים להשלים את המשחק</p>
+            <p>🎯 תשובה נכונה מזכה ב-10 נקודות</p>
+            <p>⚠️ שימו לב! לא ניתן לשנות תשובה לאחר בחירה</p>
+            <p>🔔 תקבלו התראה 3 שניות לפני סיום הזמן</p>
+            <button class="start-button" onclick="startGame()">התחל משחק</button>
+        </div>
+    </div>
+
+    <script>
+        const riddles = [
+            {
+                riddle: "יש לי עיניים אך איני רואה, יש לי פה אך איני אוכל, יש לי רגליים אך איני הולך. מי אני?",
+                options: ["בובה", "תמונה", "מחשב", "שולחן"],
+                correct: 0,
+                explanation: "בובה יש לה את כל האיברים הללו אך היא לא יכולה להשתמש בהם"
+            },
+            {
+                riddle: "מה הולך על ארבע בבוקר, על שתיים בצהריים, ועל שלוש בערב?",
+                options: ["כלב", "אדם", "חתול", "ציפור"],
+                correct: 1,
+                explanation: "האדם זוחל על ארבע כתינוק, הולך על שתיים כמבוגר, ונעזר במקל בזקנה"
+            },
+            {
+                riddle: "ככל שתיקח ממני יותר, כך אגדל. מה אני?",
+                options: ["מים", "אוויר", "חור", "אש"],
+                correct: 2,
+                explanation: "החור מתרחב ככל שאתה חופר אותו יותר"
+            },
+            {
+                riddle: "מה תמיד קדימה, אבל אף פעם לא יכול ללכת?",
+                options: ["שעון", "כוכב", "זמן", "העתיד"],
+                correct: 3,
+                explanation: "העתיד תמיד קדימה, אבל לא יכול ללכת"
+            },
+            {
+                riddle: "מה שוקל פחות מכל דבר, אך יכול להעמיס עליך הכי הרבה?",
+                options: ["דאגות", "בגדים", "חובות", "לב"],
+                correct: 0,
+                explanation: "דאגות שוקלות מעט, אך יכולות להעמיס עליך הכי הרבה"
+            },
+            {
+                riddle: "העולם שלי הוא בלתי מוגבל, אבל אני לא יכול לעזוב את המקום שבו אני נמצא. מי אני?",
+                options: ["יקום", "המחשב", "הים", "דמיון"],
+                correct: 3,
+                explanation: "הדמיון בלתי מוגבל, אך תמיד נמצא בתודעה שלך"
+            },
+            {
+                riddle: "אם תשים אותי בתוך כיס, אני לא יראה דבר. מה אני?",
+                options: ["טלפון", "ספר", "שטר כסף", "משקפיים"],
+                correct: 3,
+                explanation: "אם שמים את המשקפיים בתוך כיס, הם לא יראו דבר"
+            },
+            {
+                riddle: "אני לא חי, אבל אני זז; אני לא מדבר, אבל אני שומע. מי אני?",
+                options: ["מכונית", "רובוט", "שעון", "טלפון"],
+                correct: 0,
+                explanation: "המכונית זזה, אך לא חיה, ושומעת את צלילי הסביבה"
+            },
+            {
+                riddle: "אני לא אוכל, אבל אני אכסה אותך אם יהיה קר. מה אני?",
+                options: ["שמיכה", "כיסא", "מעיל", "חולצה"],
+                correct: 0,
+                explanation: "שמיכה מכסה אותך אם קר, אבל היא לא אוכלת"
+            },
+            {
+                riddle: "יש לי קרניים, אבל אני לא צבי. מי אני?",
+                options: ["מכונית", "דינוזאור", "עץ", "תנין"],
+                correct: 2,
+                explanation: "עץ יכול להיות עם קרניים, אך הוא לא צבי"
+            },
+            {
+                riddle: "אני גדל מלמטה למעלה, אבל יורד מלמעלה למטה. מי אני?",
+                options: ["גשם", "עץ", "מפל", "שלג"],
+                correct: 1,
+                explanation: "העץ גדל מלמטה למעלה, אבל העלים שלו נופלים מלמעלה למטה"
+            },
+            {
+                riddle: "אני נשבר כשמדברים עלי. מה אני?",
+                options: ["זכוכית", "שתיקה", "סוד", "קרח"],
+                correct: 1,
+                explanation: "השתיקה נשברת כאשר מתחילים לדבר"
+            },
+            {
+                riddle: "יש לי מיליוני עיניים, אבל אני לא רואה כלום. מי אני?",
+                options: ["רשת", "מסננת", "מברשת", "גבינה"],
+                correct: 1,
+                explanation: "למסננת יש הרבה חורים שנראים כמו עיניים"
+            },
+            {
+                riddle: "ככל שאני אוכל, אני נהיה רזה יותר. מי אני?",
+                options: ["עיפרון", "נר", "מחק", "ספוג"],
+                correct: 0,
+                explanation: "העיפרון נהיה קצר יותר ככל שמשתמשים בו"
+            },
+            {
+                riddle: "אני הולך לכל מקום איתך, אבל אף פעם לא זז. מי אני?",
+                options: ["צל", "נעליים", "כובע", "תיק"],
+                correct: 0,
+                explanation: "הצל תמיד איתך אבל הוא לא זז בעצמו"
+            },
+            {
+                riddle: "מה יש בחוץ אבל אף פעם לא נכנס?",
+                options: ["צל", "רוח", "שמש", "גשם"],
+                correct: 1,
+                explanation: "הרוח תמיד בחוץ ולא נכנסת"
+            },
+            {
+                riddle: "מה יש בחדר אך אף פעם לא רואה את זה?",
+                options: ["תמונות", "צל", "שיניים", "קול"],
+                correct: 2,
+                explanation: "השיניים תמיד בפה, אך לא רואות את עצמן"
+            },
+            {
+                riddle: "מה הולך בלי רגליים אך תמיד צועד?",
+                options: ["זמן", "מים", "רוח", "רכבת"],
+                correct: 0,
+                explanation: "הזמן תמיד זורם וצועד, אך אין לו רגליים"
+            },
+            {
+                riddle: "מה נשאר תמיד אותו דבר, גם כשאתה משנה את הדרך בה אתה משתמש בו?",
+                options: ["ספר", "חיים", "כסף", "מפתח"],
+                correct: 2,
+                explanation: "הכסף נשאר אותו דבר, גם אם תשתמש בו בדרכים שונות"
+            },
+            {
+                riddle: "מה אתה יכול לשבור בלי לגעת בו?",
+                options: ["שקט", "מראה", "לב", "דממה"],
+                correct: 3,
+                explanation: "אפשר לשבור שקט או דממה בלי לגעת בהם"
+            },
+            {
+                riddle: "מה תמיד קדימה, אבל אף פעם לא יכול ללכת?",
+                options: ["שעון", "כוכב", "זמן", "העתיד"],
+                correct: 2,
+                explanation: "העתיד תמיד קדימה, אך לא יכול ללכת"
+            },
+            {
+                riddle: "מה שוקל יותר: כדור מלא או כדור חלול בגודל זהה?",
+                options: ["הכדור המלא", "הכדור החלול", "שניהם שוקלים אותו דבר", "תלוי בחומר ממנו עשויים הכדורים"],
+                correct: 0,
+                explanation: "הכדור המלא שוקל יותר, כי הוא מכיל חומר יותר"
+            },
+            {
+                riddle: "מה עובר דרך העיר, אך אף פעם לא זז?",
+                options: ["כביש", "רכבת", "מדרכה", "רוח"],
+                correct: 0,
+                explanation: "הכביש עובר דרך העיר אך לא זז"
+            },
+            {
+                riddle: "מה מתחיל בבוקר, עובד בצהריים, ונעצר בערב?",
+                options: ["שעון", "שמש", "זמן", "האדם"],
+                correct: 0,
+                explanation: "השעון עובד כל הזמן, אך הוא לא משתנה"
+            },
+            {
+                riddle: "אני נמצא תמיד, אך אף פעם לא רואה אותי. מי אני?",
+                options: ["צל", "חבר", "צליל", "אור"],
+                correct: 3,
+                explanation: "האור תמיד איתך, אך אתה לא רואה אותו ישירות"
+            },
+            {
+                riddle: "אני נשמע אבל לא נראה, מה אני?",
+                options: ["רוח", "רעיון", "רעש", "זיכרון"],
+                correct: 2,
+                explanation: "הקול נשמע אך לא ניתן לראות אותו"
+            },
+            {
+                riddle: "מה יש לו הרבה חורים, אך הוא עדיין מחזיק מים?",
+                options: ["ספוג", "רשת", "כוס", "מיכל"],
+                correct: 0,
+                explanation: "ספוג יכול להיות מלא חורים, אך הוא עדיין שומר מים"
+            },
+            {
+                riddle: "מה זז בלי רגליים ונכנס לכל מקום?",
+                options: ["מים", "רעיון", "אויר", "זמן"],
+                correct: 1,
+                explanation: "רעיון יכול לנוע במחשבתך בלי גוף"
+            },
+            {
+                riddle: "מה מתרחש כשיש לך את כל הדברים, אך לא מוצא את המפתחות?",
+                options: ["תסכול", "בדידות", "אכזבה", "רוגע"],
+                correct: 0,
+                explanation: "תסכול נגרם כשיש לך את כל הדברים, אך לא מוצא את הפתרון"
+            },
+            {
+                riddle: "מה אתה שובר מבלי להרגיש?",
+                options: ["שקט", "לב", "שמש", "מצפון"],
+                correct: 3,
+                explanation: "המצפון שלך נשבר כשאתה עושה משהו לא נכון"
+            },
+            {
+                riddle: "מה יש לך תמיד, אך אף פעם לא רואה את זה?",
+                options: ["תמונות", "צל", "שיניים", "קול"],
+                correct: 1,
+                explanation: "הצל תמיד איתך, אך אתה לא רואה אותו"
+            },
+            {
+                riddle: "מה יש לו קרניים, אבל הוא לא צבי?",
+                options: ["עץ", "דינוזואר", "מכונית", "תנין"],
+                correct: 0,
+                explanation: "עץ יכול להיות עם קרניים, אך הוא לא צבי"
+            },
+            {
+                riddle: "אני הולך לכל מקום איתך, אבל אף פעם לא זז. מי אני?",
+                options: ["צל", "נעליים", "כובע", "תיק"],
+                correct: 0,
+                explanation: "הצל תמיד איתך, אך הוא לא זז בעצמו"
+            },
+            {
+                riddle: "מה נשאר תמיד אותו דבר, גם כשאתה משנה את הדרך בה אתה משתמש בו?",
+                options: ["ספר", "חיים", "כסף", "מפתח"],
+                correct: 3,
+                explanation: "המפתח תמיד נשאר אותו דבר"
+            },
+            {
+                riddle: "מה אתה יכול לשבור בלי לגעת בו?",
+                options: ["שקט", "מראה", "לב", "דממה"],
+                correct: 0,
+                explanation: "אפשר לשבור שקט או דממה בלי לגעת בהם"
+            },
+            {
+                riddle: "מה יש בכל מקום, אך אף פעם לא רואה אותו?",
+                options: ["דמעה", "כוכבים", "רעיון", "רוח"],
+                correct: 2,
+                explanation: "רעיון יכול להיות בכל מקום, אבל לא רואים אותו"
+            },
+            {
+                riddle: "מה יש לו ידיים אך לא יכול לעבוד?",
+                options: ["שעון", "פסל", "דומינו", "תמונה"],
+                correct: 1,
+                explanation: "לפסל יש ידיים, אך הוא לא יכול לעבוד"
+            },
+            {
+                riddle: "מה אתה יכול למצוא תמיד בקצה של כל דבר?",
+                options: ["מילה", "אות", "סוף", "רוח"],
+                correct: 2,
+                explanation: "סוף נמצא תמיד בקצה של כל דבר"
+            },
+            {
+                riddle: "מה עובר דרך הקירות אך לא שובר אותם?",
+                options: ["אור", "רוח", "קול", "מים"],
+                correct: 0,
+                explanation: "אור עובר דרך קירות, אך לא שובר אותם"
+            },
+            {
+                riddle: "מה אני, אני תמיד מולך, אך לא תוכל לראות אותי?",
+                options: ["העתיד", "הצל", "ההיסטוריה", "הזמן"],
+                correct: 0,
+                explanation: "העתיד תמיד מולך, אך אתה לא יכול לראות אותו"
+            },
+            {
+                riddle: "מה אתה יכול לחתוך אך הוא תמיד נשאר אותו דבר?",
+                options: ["נייר", "תמונה", "חוט", "זמן"],
+                correct: 3,
+                explanation: "הזמן תמיד נשאר אותו דבר, גם אם אתה חותך אותו"
+            },
+            {
+                riddle: "מה שוקל יותר? שמיים בלי כוכבים או שמיים עם כוכבים?",
+                options: ["שמים עם כוכבים", "שמים בלי כוכבים", "שניהם שוקלים אותו דבר", "תלוי בגובה"],
+                correct: 2,
+                explanation: "הכוכבים לא שוקלים שום דבר משמעותי"
+            },
+            {
+                riddle: "מה יש לך בראש, אבל לא תוכל לגעת בו?",
+                options: ["מחשבה", "תמונה", "שיער", "חול"],
+                correct: 0,
+                explanation: "המחשבות תמיד בראשך, אך אינך יכול לגעת בהן"
+            },
+            {
+                riddle: "מה נשמע תמיד אך אף פעם לא יכול לדבר?",
+                options: ["רוח", "מוזיקה", "רעיון", "קול"],
+                correct: 3,
+                explanation: "הקול תמיד נשמע, אך לא מדבר"
+            },
+            {
+                riddle: "מה יש לך בבית, אבל לא תשחק איתו?",
+                options: ["סולם", "תמונה", "שעון", "ריהוט"],
+                correct: 2,
+                explanation: "השעון בביתך, אך אינך משחק איתו"
+            },
+            {
+                riddle: "מה תמיד איתך, אך לא תוכל לשלוט עליו?",
+                options: ["לב", "הצלחה", "זמן", "חיים"],
+                correct: 2,
+                explanation: "הזמן תמיד איתך, אך אינך יכול לשלוט בו"
+            },
+            {
+                riddle: "מה תמיד מרחף בחלל, אך אף פעם לא נשאר במקום?",
+                options: ["כוכב", "רוח", "עפיפון", "דמיון"],
+                correct: 1,
+                explanation: "הרוח תמיד זזה בחלל, ולא נשארת במקום"
+            },
+            {
+                riddle: "מה עשוי ממילים, אך לא מכיל אותן?",
+                options: ["ספר", "פאזל", "מילה", "שיר"],
+                correct: 1,
+                explanation: "הפאזל עשוי ממילים (במובן של חידות), אך לא מכיל אותן ישירות"
+            },
+            {
+                riddle: "מה גודלו תמיד נשאר זהה, אך הוא יכול לשנות את צורתו?",
+                options: ["מים", "אבן", "זמן", "רוח"],
+                correct: 0,
+                explanation: "המים גודלים תמיד באותו אופן, אך צורתם משתנה"
+            },
+            {
+                riddle: "מה לא מדבר, אך אנשים יכולים להרגיש אותו?",
+                options: ["אהבה", "חום", "רעש", "צל"],
+                correct: 1,
+                explanation: "חום לא מדבר, אך אנשים יכולים להרגיש אותו"
+            },
+            {
+                riddle: "מה יש בו המון צבעים, אבל הוא לא צבעוני?",
+                options: ["שמש", "קשת", "ים", "צבעי עיניים"],
+                correct: 1,
+                explanation: "הקשת מלאה בצבעים, אך היא עצמה לא צבעונית"
+            },
+            {
+                riddle: "מה קורה פעם אחת ביום, אבל לא כל יום?",
+                options: ["שקיעה", "הבוקר", "החצות", "שעה שתיים"],
+                correct: 2,
+                explanation: "החצות קורה רק פעם ביום"
+            },
+            {
+                riddle: "מה יכול להחיות אותך, אך לא יכול לנשום?",
+                options: ["מים", "מזון", "חמצן", "רעיון"],
+                correct: 3,
+                explanation: "רעיון יכול להחיות אותך (באופן מטאפורי), אך הוא לא יכול לנשום"
+            },
+            {
+                riddle: "אני יכול להיות נוזל או מוצק, אך אני תמיד אטום. מי אני?",
+                options: ["גז", "ברזל", "מים", "חומר פלסטי"],
+                correct: 3,
+                explanation: "החומר הפלסטי יכול להיות מוצק או נוזלי, אך תמיד יהיה אטום"
+            },
+            {
+                riddle: "מה יגדל ככל שתשאב ממנו יותר?",
+                options: ["בור", "ים", "חור", "פח"],
+                correct: 2,
+                explanation: "החור יגדל ככל שתשאב ממנו יותר"
+            },
+            {
+                riddle: "מה שותף לעבודה עם חשמלאי, אך לא עובד בעצמו?",
+                options: ["סוללה", "חוט", "חשמל", "מנורה"],
+                correct: 1,
+                explanation: "החוט עובד עם החשמלאי, אך לא עובד בעצמו"
+            },
+            {
+                riddle: "מה תמיד צמוד אליך, אך אתה לא יכול להרגיש אותו?",
+                options: ["צילו", "תודעתך", "עורך דין", "אור"],
+                correct: 0,
+                explanation: "הצל תמיד איתך, אך אתה לא מרגיש אותו"
+            },
+            {
+                riddle: "מה אתה יכול להחזיק ביד, אבל הוא לא שייך לך?",
+                options: ["הטלפון", "הנשימה", "הזמן", "הגז"],
+                correct: 2,
+                explanation: "הזמן אתה לא יכול להחזיק, אך הוא תמיד איתך"
+            },
+            {
+                riddle: "אני נמצא במרכז השמים, אך אף פעם לא זז. מי אני?",
+                options: ["השמש", "הירח", "הכוכבים", "כדור הארץ"],
+                correct: 3,
+                explanation: "כדור הארץ נמצא במרכז השמים (במובן של תצפית), אך לא זז במקום"
+            },
+            {
+                riddle: "מה שווה את המשקל של כל דבר אך לא יכול להחזיק בו?",
+                options: ["אוויר", "חשמל", "רעש", "דממה"],
+                correct: 1,
+                explanation: "החשמל לא יכול להחזיק שום דבר, אך הוא שווה את המשקל של כל דבר"
+            },
+            {
+                riddle: "מה תמיד מרחף אך לא נוגע? מי אני?",
+                options: ["רוח", "זמן", "תמונה", "מחשבה"],
+                correct: 3,
+                explanation: "המחשבה תמיד מרחפת אך לא נוגעת במשהו פיזי"
+            },
+            {
+                riddle: "אני נע ללא רגליים, שר ללא פה. מי אני?",
+                options: ["נהר", "רוח", "ים", "עננים"],
+                correct: 0,
+                explanation: "הנהר זורם ללא רגליים, ומשמיע קולות"
+            },
+            {
+                riddle: "מה שווה יותר ככל שאתה מוציא ממנו יותר?",
+                options: ["חור", "כסף", "ידע", "בור"],
+                correct: 3,
+                explanation: "ככל שתחפור בור יותר עמוק, הוא שווה יותר"
+            },
+            {
+                riddle: "אני יכול להיות גדול כהר או קטן כעכבר. מי אני?",
+                options: ["צל", "חלום", "רעיון", "מחשבה"],
+                correct: 2,
+                explanation: "רעיון יכול להיות בכל גודל שהוא"
+            },
+            {
+                riddle: "מה שומעים אך אי אפשר לגעת?",
+                options: ["קול", "רוח", "זיכרון", "מוזיקה"],
+                correct: 0,
+                explanation: "קול נשמע אך לא ניתן לגעת בו"
+            },
+            {
+                riddle: "אני תמיד רץ אך לעולם לא מגיע. מי אני?",
+                options: ["שעון", "זמן", "מרתון", "נהר"],
+                correct: 1,
+                explanation: "הזמן תמיד זורם אך לעולם לא מגיע ליעד"
+            },
+            {
+                riddle: "מה שייך לך אך אנשים אחרים משתמשים בו יותר?",
+                options: ["שם", "סוד", "גוף", "נשימה"],
+                correct: 0,
+                explanation: "השם שלך שייך לך, אך אחרים משתמשים בו יותר מאשר אתה"
+            },
+            {
+                riddle: "אני נותן אור ללא אש, אך לא יכול להדליק נר. מי אני?",
+                options: ["ירח", "כוכב", "חשמל", "רעיון"],
+                correct: 0,
+                explanation: "הירח מאיר ללא אש, אך לא יכול להדליק נר"
+            },
+            {
+                riddle: "מה יש לו שני ראשים, שלושה גופים, ושש עיניים?",
+                options: ["נמר", "דג", "כבש", "משפחה"],
+                correct: 3,
+                explanation: "משפחה יכולה להכיל שני הורים וילד"
+            },
+            {
+                riddle: "מה נמצא בין הארץ והשמיים?",
+                options: ["אוויר", "רוח", "ענן", "האות מ'"],
+                correct: 3,
+                explanation: "האות מ' נמצאת בין הארץ (א') והשמיים (ש')"
+            },
+            {
+                riddle: "אני מופיע פעמיים בשבוע, פעם אחת בשנה, אך אף פעם לא בחודש. מי אני?",
+                options: ["האות ש'", "האות ס'", "האות ה'", "האות ר'"],
+                correct: 0,
+                explanation: "האות ש' מופיעה במילים: שבוע, שנה"
+            },
+            {
+                riddle: "מה שומר על האמת אך אף פעם לא מדבר?",
+                options: ["יומן", "מראה", "חוק", "מחשבה"],
+                correct: 1,
+                explanation: "המראה משקף את האמת ללא דיבור"
+            },
+            {
+                riddle: "אני גדל ללא חיים, מת ללא חיים. מי אני?",
+                options: ["עץ", "אש", "אבן", "ברזל"],
+                correct: 2,
+                explanation: "אבן יכולה לגדול (מבחינת גודל) ללא חיים"
+            },
+            {
+                riddle: "מה אתה יכול לשבור אפילו אם לא תיגע בו?",
+                options: ["לב", "כלי", "הבטחה", "חלום"],
+                correct: 2,
+                explanation: "הבטחה יכולה להישבר גם ללא מגע פיזי"
+            },
+            {
+                riddle: "אני נע בלי רגליים, מדבר בלי פה. מי אני?",
+                options: ["נחל", "רוח", "חלום", "רעיון"],
+                correct: 1,
+                explanation: "הרוח זזה ללא רגליים, ומשמיעה קולות"
+            },
+            {
+                riddle: "מה יותר כבד: קילוגרם של נוצות או קילוגרם של ברזל?",
+                options: ["ברזל", "נוצות", "שניהם שווים", "תלוי בטמפרטורה"],
+                correct: 2,
+                explanation: "קילוגרם הוא יחידת משקל זהה לכל החומרים"
+            },
+            {
+                riddle: "אני יכול להיות חם או קר, אך אף פעם לא חי. מי אני?",
+                options: ["אוכל", "משקה", "טמפרטורה", "מזג אוויר"],
+                correct: 2,
+                explanation: "טמפרטורה יכולה להשתנות אך לעולם אינה חיה"
+            },
+            {
+                riddle: "מה שומר על חייך אך אף פעם לא נוגע בך?",
+                options: ["חוק", "ביטוח", "אהבה", "חלום"],
+                correct: 0,
+                explanation: "החוק שומר על האזרחים ללא מגע פיזי"
+            },
+            {
+                riddle: "אני יכול להיות גדול או קטן, חזק או חלש. מי אני?",
+                options: ["כוח", "רעיון", "אופי", "זיכרון"],
+                correct: 1,
+                explanation: "רעיון יכול להתפשט או להצטמצם"
+            },
+        ];
+
+        let currentRiddleIndex = 0;
+        let score = 0;
+        let level = 1;
+        let lives = 10;
+        let timer;
+        let timePerQuestion = 30;
+
+        function startGame() {
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            welcomeScreen.style.display = 'none';
+            
+            const gameContainer = document.getElementById('gameContainer');
+            gameContainer.innerHTML = `
+                <div class="header">
+                    <div class="lives">❤️ ${lives}</div>
+                    <div class="timer">${timePerQuestion}</div>
+                    <div class="score">ניקוד: ${score}</div>
+                    <div class="level">שלב: ${level}</div>
+                </div>
+                <div class="riddle"></div>
+                <div class="options"></div>
+                <div class="feedback"></div>
+            `;
+            shuffleRiddles(riddles);  // ערבוב השאלות
+            showRiddle();
+        }
+
+        function showRiddle() {
+            if (currentRiddleIndex >= riddles.length) {
+                endGame();
+                return;
+            }
+
+            const currentRiddle = riddles[currentRiddleIndex];
+            document.querySelector('.riddle').textContent = currentRiddle.riddle;
+            
+            const optionsContainer = document.querySelector('.options');
+            optionsContainer.innerHTML = '';
+            
+            currentRiddle.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option';
+                button.textContent = option;
+                button.onclick = () => checkAnswer(index);
+                optionsContainer.appendChild(button);
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            let timeLeft = timePerQuestion;
+            document.querySelector('.timer').textContent = timeLeft;
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                document.querySelector('.timer').textContent = timeLeft;
+                
+                if (timeLeft <= 3) {
+                    document.querySelector('.timer').classList.add('warning');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(selectedIndex) {
+            clearInterval(timer);
+            const currentRiddle = riddles[currentRiddleIndex];
+            const feedbackElement = document.querySelector('.feedback');
+            const options = document.querySelectorAll('.option');
+            
+            options.forEach(option => option.disabled = true);
+            
+            if (selectedIndex === currentRiddle.correct) {
+                score += 10;
+                feedbackElement.innerHTML = `<div class="correct-message">נכון!🎉 ${currentRiddle.explanation}</div>`;
+                document.querySelector('.score').textContent = `ניקוד: ${score}`;
+            } else {
+                lives--;
+                feedbackElement.innerHTML = `<div class="wrong-message">לא נכון. ${currentRiddle.explanation}</div>`;
+                document.querySelector('.lives').textContent = `❤️ ${lives}`;
+                
+                if (lives <= 0) {
+                    endGame();
+                    return;
+                }
+            }
+
+            setTimeout(() => {
+                currentRiddleIndex++;
+                level = Math.floor(score / 50) + 1;
+                document.querySelector('.level').textContent = `שלב: ${level}`;
+                feedbackElement.textContent = '';
+                showRiddle();
+            }, 2000);
+        }
+
+        function handleTimeout() {
+            lives--;
+            document.querySelector('.lives').textContent = `❤️ ${lives}`;
+            
+            const feedbackElement = document.querySelector('.feedback');
+            feedbackElement.innerHTML = '<div class="wrong-message">נגמר הזמן!</div>';
+            
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => option.disabled = true);
+            
+            if (lives <= 0) {
+                endGame();
+                return;
+            }
+
+            setTimeout(() => {
+                currentRiddleIndex++;
+                level = Math.floor(currentRiddleIndex / 5) + 1;
+                document.querySelector('.level').textContent = `שלב: ${level}`;
+                feedbackElement.textContent = '';
+                showRiddle();
+            }, 2000);
+        }
+
+        function endGame() {
+            const gameContainer = document.getElementById('gameContainer');
+            gameContainer.innerHTML = `
+                <div class="welcome-screen">
+                    <h1>${lives > 0 ? 'כל הכבוד!' : 'המשחק נגמר'}</h1>
+                    <p>הניקוד הסופי שלך: ${score}</p>
+                    <p>הגעת לשלב: ${level}</p>
+                    <button class="start-button" onclick="location.reload()">שחק שוב</button>
+                </div>
+            `;
+        }
+
+        // ערבוב השאלות בצורה אקראית
+        function shuffleRiddles(riddles) {
+            for (let i = riddles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [riddles[i], riddles[j]] = [riddles[j], riddles[i]]; // החלפה
+            }
+        }
+    </script>
+</body>
+</html>

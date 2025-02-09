@@ -1,0 +1,600 @@
+﻿<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>GameZone - משחקים מהנים</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: linear-gradient(135deg, #1a1c20 0%, #2c3e50 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem 2rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4cd137;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+            .nav-links a {
+                color: white;
+                text-decoration: none;
+                font-size: 1.1rem;
+                transition: color 0.3s ease;
+            }
+
+                .nav-links a:hover {
+                    color: #4cd137;
+                }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .auth-button {
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .login-button {
+            color: white;
+            border: 1px solid #4cd137;
+        }
+
+        .register-button {
+            background: #4cd137;
+            color: white;
+        }
+
+        .main-content {
+            padding-top: 100px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem;
+            margin-bottom: 2rem;
+        }
+
+            .hero h1 {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                color: #4cd137;
+            }
+
+            .hero p {
+                font-size: 1.2rem;
+                color: #bdc3c7;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 1rem;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+            .game-card:hover {
+                transform: translateY(-10px);
+            }
+
+        .game-image {
+            width: 100%;
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .game-info {
+            padding: 1.5rem;
+        }
+
+            .game-info h3 {
+                color: #4cd137;
+                margin-bottom: 0.5rem;
+            }
+
+            .game-info p {
+                color: #bdc3c7;
+                font-size: 0.9rem;
+                margin-bottom: 1rem;
+            }
+
+        .play-button {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: #4cd137;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+            .play-button:hover {
+                background: #45b82f;
+            }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1001;
+        }
+
+        .modal-content {
+            position: relative;
+            width: 95%;
+            height: 95%;
+            margin: 2.5vh auto;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            z-index: 1002;
+            background: rgba(0, 0, 0, 0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+            .footer p {
+                color: #bdc3c7;
+            }
+
+        /* Authentication Modal Styles */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .auth-modal-content {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .auth-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+            .auth-toggle button {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 1.1rem;
+                margin: 0 1rem;
+                cursor: pointer;
+                opacity: 0.6;
+                transition: opacity 0.3s;
+            }
+
+                .auth-toggle button.active {
+                    opacity: 1;
+                    border-bottom: 2px solid #4cd137;
+                }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+            .auth-form input {
+                margin: 0.5rem 0;
+                padding: 0.75rem;
+                border: none;
+                border-radius: 5px;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+            }
+
+                .auth-form input::placeholder {
+                    color: rgba(255, 255, 255, 0.7);
+                }
+
+        .submit-btn {
+            background: #4cd137;
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+            .submit-btn:hover {
+                background: #45b82f;
+            }
+
+        .error-message {
+            color: #ff4444;
+            margin-top: 1rem;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logout-button {
+            background: none;
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+            .logout-button:hover {
+                background: #ff4444;
+                color: white;
+            }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="logo">GameZone</a>
+        <div class="nav-links">
+            <a href="#">דף הבית</a>
+            <a href="#games">משחקים</a>
+            <a href="#odot">אודות</a>
+        </div>
+        <div id="authSection" class="auth-buttons">
+            <a href="#" class="auth-button login-button" onclick="openAuthModal('login')">התחבר</a>
+            <a href="#" class="auth-button register-button" onclick="openAuthModal('register')">הירשם</a>
+        </div>
+        <div id="userSection" class="user-profile" style="display:none;">
+            שלום<span id="username"></span>
+            <button class="logout-button" onclick="logout()">התנתק</button>
+        </div>
+    </nav>
+
+    <div id="authModal" class="auth-modal">
+        <div class="auth-modal-content">
+            <div class="auth-toggle">
+                <button id="loginBtn" class="active" onclick="showLogin()">התחברות</button>
+                <button id="registerBtn" onclick="showRegister()">הרשמה</button>
+            </div>
+
+            <form id="loginForm" class="auth-form">
+                <input type="text" id="loginUsername" placeholder="שם משתמש" required>
+                <input type="password" id="loginPassword" placeholder="סיסמה" required>
+                <button type="submit" class="submit-btn" onclick="login(event)">התחבר</button>
+                <div id="loginError" class="error-message"></div>
+            </form>
+
+            <form id="registerForm" class="auth-form" style="display:none;">
+                <input type="text" id="registerUsername" placeholder="שם משתמש" required>
+                <input type="email" id="registerEmail" placeholder="כתובת אימייל" required>
+                <input type="password" id="registerPassword" placeholder="סיסמה" required>
+                <input type="password" id="confirmPassword" placeholder="אשר סיסמה" required>
+                <button type="submit" class="submit-btn" onclick="register(event)">הירשם</button>
+                <div id="registerError" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <section class="hero">
+            <h1>ברוכים הבאים ל-GameZone</h1>
+            <p>מגוון משחקים מאתגרים ומהנים במקום אחד. בחרו משחק והתחילו לשחק!</p>
+        </section>
+
+        <section id="games" class="games-grid">
+            <div class="game-card" onclick="checkLoginAndOpenGame('riddles')">
+                <div class="game-image" style="background-image: url('Images/logicpazzle.jpg')"></div>
+                <div class="game-info">
+                    <h3>חידות הגיון</h3>
+                    <p>נסו לפתור חידות מאתגרות ומשעשעות. צברו נקודות והגיעו לרמות מתקדמות!</p>
+                    <a href="#" class="play-button">שחק עכשיו</a>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="checkLoginAndOpenGame('memory')">
+                <div class="game-image" style="background-image: url('Images/MemoryGame.jpg')"></div>
+                <div class="game-info">
+                    <h3>משחק זיכרון</h3>
+                    <p>מצאו זוגות של קלפים זהים ואתגרו את הזיכרון שלכם!</p><br />
+                    <a href="#" class="play-button">שחק עכשיו</a>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="checkLoginAndOpenGame('math')">
+                <div class="game-image" style="background-image: url('Images/MathGame.jpg')"></div>
+                <div class="game-info">
+                    <h3>אתגר מתמטי</h3>
+                    <p>פתרו תרגילי מתמטיקה במהירות וצברו נקודות!</p><br />
+                    <a href="#" class="play-button">שחק עכשיו</a>
+                </div>
+            </div>
+            <div class="game-card" onclick="checkLoginAndOpenGame('snake')">
+                <div class="game-image" style="background-image: url('Images/snake.jpg')"></div>
+                <div class="game-info">
+                    <h3>משחק סנייק</h3>
+                    <p>הזיזו את הנחש, אכלו תפוחים וצברו נקודות!</p><br />
+                    <a href="#" class="play-button">שחק עכשיו</a>
+                </div>
+            </div>
+            <div class="game-card" onclick="checkLoginAndOpenGame('Tic-Tac-Toe')">
+                <div class="game-image" style="background-image: url('Images/Tic-Tac-Toe.jpg')"></div>
+                <div class="game-info">
+                    <h3>משחק איקס עיגול</h3>
+                    <p>שחקו איקס עיגול מול חבר או מחשב ונסו לנצח!</p><br />
+                    <a href="#" class="play-button">שחק עכשיו</a>
+                </div>
+            </div>
+            <div class="game-card" onclick="checkLoginAndOpenGame('TetrisGame')">
+                <div class="game-image" style="background-image: url('Images/TetrisGame.jpg')"></div>
+                <div class="game-info">
+                    <h3>משחק נחש את הקוד</h3>
+                    <p>שחקו טטריס ונסו להרוויח כמה שיותר נקודות!</p><br />
+                    <a href="#" class="play-button">שחק עכשיו</a>
+                </div>
+            </div>
+            <div class="game-card" onclick="checkLoginAndOpenGame('GuessTheCode')">
+                <div class="game-image" style="background-image: url('Images/GuessTheCode.jpg')"></div>
+                <div class="game-info">
+                    <h3>משחק נחש את הקוד</h3>
+                    <p>נסו לנחש את הקוד לפי הרמזים!</p><br />
+                    <a href="#" class="play-button">שחק עכשיו</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="gameModal" class="modal">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <div class="modal-content">
+            <iframe id="gameFrame" src=""></iframe>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p id="odot">©2024 GameZone - כל הזכויות שמורות לשי שרון</p>
+    </footer>
+    <script>
+        // User Authentication and Game Management Script
+
+        // Initialize users array from localStorage or create empty array
+        let users = JSON.parse(localStorage.getItem('gameZoneUsers') || '[]');
+
+        // DOM Element Selectors
+        const authModal = document.getElementById('authModal');
+        const gameModal = document.getElementById('gameModal');
+        const authSection = document.getElementById('authSection');
+        const userSection = document.getElementById('userSection');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+
+        // Authentication Modal Handlers
+        function openAuthModal(type) {
+            authModal.style.display = 'flex';
+            type === 'register' ? showRegister() : showLogin();
+        }
+
+        function showLogin() {
+            loginForm.style.display = 'flex';
+            registerForm.style.display = 'none';
+            loginBtn.classList.add('active');
+            registerBtn.classList.remove('active');
+        }
+
+        function showRegister() {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'flex';
+            registerBtn.classList.add('active');
+            loginBtn.classList.remove('active');
+        }
+
+        // User Registration
+        function register(event) {
+            event.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorElement = document.getElementById('registerError');
+
+            // אימות תקינות מייל
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                errorElement.textContent = 'כתובת מייל לא תקינה';
+                return;
+            }
+
+            // Validation Checks
+            if (password !== confirmPassword) {
+                errorElement.textContent = 'הסיסמאות אינן תואמות';
+                return;
+            }
+
+            if (users.some(user => user.username === username)) {
+                errorElement.textContent = 'שם משתמש זה כבר קיים';
+                return;
+            }
+
+            // Create New User
+            const newUser = {
+                username,
+                email,
+                password,
+                registrationDate: new Date().toISOString(),
+                points: 0
+            };
+
+            users.push(newUser);
+            localStorage.setItem('gameZoneUsers', JSON.stringify(users));
+            localStorage.setItem('currentUser', username);
+            alert(`נרשמת בהצלחה! תודה ${username} על הרשמתך ל-GAMEZONE.`);
+
+            // Reset and Close Modal
+            event.target.reset();
+            errorElement.textContent = '';
+            authModal.style.display = 'none';
+            updateUIForLoggedInUser(username);
+        }
+
+        // User Login
+        function login(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorElement = document.getElementById('loginError');
+
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                localStorage.setItem('currentUser', username);
+                authModal.style.display = 'none';
+                updateUIForLoggedInUser(username);
+            } else {
+                errorElement.textContent = 'שם משתמש או סיסמה שגויים';
+            }
+        }
+
+        // Update UI for Logged-In User
+        function updateUIForLoggedInUser(username) {
+            authSection.style.display = 'none';
+            userSection.style.display = 'flex';
+            document.getElementById('username').textContent = username;
+        }
+
+        // Logout Functionality
+        function logout() {
+            localStorage.removeItem('currentUser');
+            authSection.style.display = 'flex';
+            userSection.style.display = 'none';
+        }
+
+        // Game Access Control
+        function checkLoginAndOpenGame(gameType) {
+            const currentUser = localStorage.getItem('currentUser');
+            currentUser ? openGame(gameType) : openAuthModal('login');
+        }
+
+        // Open Game in Modal
+        function openGame(gameType) {
+            const gameFrame = document.getElementById('gameFrame');
+            const gameMap = {
+                'riddles': 'QuestionsGame.html',
+                'memory': 'MemoryGame.html',
+                'math': 'MathGame.html',
+                'snake': 'SnakeGame.html',
+                'Tic-Tac-Toe': 'Tic-Tac-ToeGame.html',
+                'TetrisGame': 'TetrisGame.html',
+                'GuessTheCode': 'GuessTheCode.html',
+            };
+
+            gameFrame.src = gameMap[gameType];
+            gameModal.style.display = 'block';
+        }
+
+        // Close Modal Functions
+        function closeModal() {
+            gameModal.style.display = 'none';
+        }
+
+        // Event Listeners
+        window.addEventListener('load', () => {
+            const currentUser = localStorage.getItem('currentUser');
+            if (currentUser) updateUIForLoggedInUser(currentUser);
+        });
+
+        // Close Modals When Clicking Outside
+        window.addEventListener('click', (event) => {
+            if (event.target === authModal) authModal.style.display = 'none';
+            if (event.target === gameModal) gameModal.style.display = 'none';
+        });
+    </script>
+    <script src="//code.tidio.co/2flxpqrrf1frb1iezkt3jyof6nlsb1of.js" async></script>
+</body>
+</html>
