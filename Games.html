@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
     <meta charset="UTF-8">
@@ -426,6 +426,14 @@
                     <a href="#" class="play-button">שחק עכשיו</a>
                 </div>
             </div>
+            <div class="game-card" onclick="checkLoginAndOpenGame('RecognizeTheLogo')">
+                <div class="game-image" style="background-image: url('Images/RecognizeTheLogo.jpg')"></div>
+                <div class="game-info">
+                    <h3>משחק נחש את הקוד</h3>
+                    <p>נסו לזהות את הלוגו של הרכב!</p><br />
+                    <a href="#" class="play-button">שחק עכשיו</a>
+                </div>
+            </div>
         </section>
     </main>
 
@@ -572,6 +580,7 @@
                 'Tic-Tac-Toe': 'Tic-Tac-ToeGame.html',
                 'TetrisGame': 'TetrisGame.html',
                 'GuessTheCode': 'GuessTheCode.html',
+                'RecognizeTheLogo': 'RecognizeTheLogo.html',
             };
 
             gameFrame.src = gameMap[gameType];
